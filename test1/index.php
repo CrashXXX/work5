@@ -132,7 +132,8 @@ function changeFio($fio)
 // Редирект на указанную страницу
 function redirect($location)
 {
-	$url = ($_SERVER['SERVER_PORT'] != 443 ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . '/index.php' . ($location ? '?path=' . $location : '');
+	$url = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+	$url = ($_SERVER['SERVER_PORT'] != 443 ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . $url . ($location ? '?path=' . $location : '');
 	header('Location: ' . $url);
 	exit;
 }
@@ -150,7 +151,7 @@ $textMessageColor = 'red';
 
 
 // Так как по заданию надо создать 1 страницу, то будем в пределах одного файла выдавать разный HTML в записимости от GET-параметров (Авторизация, Регистрация, ЛК)
-// По умолчанию показываем страницу Авторизация
+// По умолчанию для неавторизованного пользователя показываем страницу Авторизация, для авторизиванного - ЛК
 if (isset($_GET['path']) && $_GET['path']) {
 	$action = $_GET['path'];
 } elseif (isset($_COOKIE['PHPSESSID'])) {
@@ -205,6 +206,7 @@ if ($action === 'login') {
 	}
 
 // На странице ЛК даем возможност редактировать ФИО и почту
+// Если не удалось авторизовать пользователя, то перекидываем на страницу ввода логина/пароля
 } elseif ($action === 'account') {
 	if ($user = getUser()) {
 		if ($_POST && $_POST['change'] === 'change') {
